@@ -26,56 +26,148 @@ HashSet: To prevent duplicate cards.
 HashMap<String, List<Card>>: To organize cards based on suits for faster lookup.
 
 
-Test Cases
+Program/Code:
 
-Test Case 1: No Cards Initially
-Input:
-Display All Cards
-Expected Output:
-No cards found.
+import java.util.*;
 
-Test Case 2: Adding Cards
-Input:
-Add Card: Ace of Spades
-Add Card: King of Hearts
-Add Card: 10 of Diamonds
-Add Card: 5 of Clubs
-Expected Output:
-Card added: Ace of Spades
-Card added: King of Hearts
-Card added: 10 of Diamonds
-Card added: 5 of Clubs
+class Card {
+    private String suit;
+    private String rank;
 
-Test Case 3: Finding Cards by Suit
-Input:
-Find All Cards of Suit: Hearts
-Expected Output:
-King of Hearts
+    public Card(String rank, String suit) {
+        this.rank = rank;
+        this.suit = suit;
+    }
 
-Test Case 4: Searching Suit with No Cards
-Input:
-Find All Cards of Suit: Diamonds
-(If no Diamonds were added)
-Expected Output:
-No cards found for Diamonds.
+    public String getSuit() {
+        return suit;
+    }
 
-Test Case 5: Displaying All Cards
-Input:
-Display All Cards
-Expected Output:
-Ace of Spades
-King of Hearts
-10 of Diamonds
-5 of Clubs
+    public String getRank() {
+        return rank;
+    }
 
-Test Case 6: Preventing Duplicate Cards
-Input:
-Add Card: King of Hearts
-Expected Output:
-Error: Card "King of Hearts" already exists.
+    @Override
+    public String toString() {
+        return rank + " of " + suit;
+    }
 
-Test Case 7: Removing a Card
-Input:
-Remove Card: 10 of Diamonds
-Expected Output:
-Card removed: 10 of Diamonds
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Card card = (Card) obj;
+        return Objects.equals(rank, card.rank) && Objects.equals(suit, card.suit);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rank, suit);
+    }
+}
+
+class CardCollection {
+    private HashSet<Card> cardSet;
+    private HashMap<String, List<Card>> suitMap;
+
+    public CardCollection() {
+        cardSet = new HashSet<>();
+        suitMap = new HashMap<>();
+    }
+
+    public void addCard(String rank, String suit) {
+        Card card = new Card(rank, suit);
+        if (cardSet.contains(card)) {
+            System.out.println("Error: Card \"" + card + "\" already exists.");
+            return;
+        }
+        cardSet.add(card);
+        suitMap.putIfAbsent(suit, new ArrayList<>());
+        suitMap.get(suit).add(card);
+        System.out.println("Card added: " + card);
+    }
+
+    public void findCardsBySuit(String suit) {
+        if (!suitMap.containsKey(suit) || suitMap.get(suit).isEmpty()) {
+            System.out.println("No cards found for " + suit + ".");
+            return;
+        }
+        for (Card card : suitMap.get(suit)) {
+            System.out.println(card);
+        }
+    }
+
+    public void displayAllCards() {
+        if (cardSet.isEmpty()) {
+            System.out.println("No cards found.");
+            return;
+        }
+        for (Card card : cardSet) {
+            System.out.println(card);
+        }
+    }
+
+    public void removeCard(String rank, String suit) {
+        Card card = new Card(rank, suit);
+        if (!cardSet.contains(card)) {
+            System.out.println("Error: Card \"" + card + "\" does not exist.");
+            return;
+        }
+        cardSet.remove(card);
+        suitMap.get(suit).remove(card);
+        if (suitMap.get(suit).isEmpty()) {
+            suitMap.remove(suit);
+        }
+        System.out.println("Card removed: " + card);
+    }
+}
+
+public class CardCollectionSystem {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        CardCollection collection = new CardCollection();
+        
+        while (true) {
+            System.out.println("\n1. Add Card");
+            System.out.println("2. Find Cards by Suit");
+            System.out.println("3. Display All Cards");
+            System.out.println("4. Remove Card");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option: ");
+            
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+            
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter rank: ");
+                    String rank = scanner.nextLine();
+                    System.out.print("Enter suit: ");
+                    String suit = scanner.nextLine();
+                    collection.addCard(rank, suit);
+                    break;
+                case 2:
+                    System.out.print("Enter suit to find: ");
+                    suit = scanner.nextLine();
+                    collection.findCardsBySuit(suit);
+                    break;
+                case 3:
+                    collection.displayAllCards();
+                    break;
+                case 4:
+                    System.out.print("Enter rank to remove: ");
+                    rank = scanner.nextLine();
+                    System.out.print("Enter suit to remove: ");
+                    suit = scanner.nextLine();
+                    collection.removeCard(rank, suit);
+                    break;
+                case 5:
+                    System.out.println("Exiting...");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+}
