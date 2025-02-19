@@ -33,58 +33,76 @@ Without synchronized, two threads might book the same seat simultaneously, causi
 🔹 Why Use Thread Priorities?
 Setting higher priority for VIP users ensures their bookings are processed first, simulating real-world priority-based bookings.
 
-Test Cases
 
-Test Case 1: No Seats Available Initially
-Input:
-System starts with 5 seats.
-No users attempt to book.
-Expected Output:
-No bookings yet.
 
-Test Case 2: Successful Booking
-Input:
-Anish (VIP) books Seat 1.
-Bobby (Regular) books Seat 2.
-Charlie (VIP) books Seat 3.
-Expected Output:
-Anish (VIP) booked seat 1
-Bobby (Regular) booked seat 2
-Charlie (VIP) booked seat 3
+Program/Code:
 
-Test Case 3: Thread Priorities (VIP First)
-Input:
-Bobby (Regular) books Seat 4 (low priority).
-Anish (VIP) books Seat 4 (high priority).
-Expected Output:
-Anish (VIP) booked seat 4
-Bobby (Regular): Seat 4 is already booked!
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.*;
 
-Test Case 4: Preventing Double Booking
-Input:
-Anish (VIP) books Seat 1.
-Bobby (Regular) tries to book Seat 1 again.
-Expected Output:
-Anish (VIP) booked seat 1
-Bobby (Regular): Seat 1 is already booked!
+class TicketBookingSystem {
+    private final boolean[] seats;
+    private final ReentrantLock lock = new ReentrantLock();
 
-Test Case 5: Booking After All Seats Are Taken
-Input:
-All 5 seats are booked.
-A new user (Regular) tries to book Seat 3.
-Expected Output:
-Error: Seat 3 is already booked!
+    public TicketBookingSystem(int totalSeats) {
+        seats = new boolean[totalSeats];
+    }
 
-Test Case 6: Invalid Seat Selection
-Input:
-User tries to book Seat 0 (out of range).
-User tries to book Seat 6 (beyond available seats).
-Expected Output:
-Invalid seat number!
+    public synchronized boolean bookSeat(int seatNumber, String userName, boolean isVIP) {
+        if (seatNumber < 1 || seatNumber > seats.length) {
+            System.out.println(userName + ": Invalid seat number!");
+            return false;
+        }
+        
+        int index = seatNumber - 1;
+        if (seats[index]) {
+            System.out.println(userName + ": Seat " + seatNumber + " is already booked!");
+            return false;
+        }
+        
+        seats[index] = true;
+        System.out.println(userName + " (" + (isVIP ? "VIP" : "Regular") + ") booked seat " + seatNumber);
+        return true;
+    }
+    
+    public void displaySeats() {
+        System.out.println("Current Seat Status:");
+        for (int i = 0; i < seats.length; i++) {
+            System.out.println("Seat " + (i + 1) + ": " + (seats[i] ? "Booked" : "Available"));
+        }
+    }
+}
 
-Test Case 7: Simultaneous Bookings (Concurrency Test)
-Input:
-10 users try booking at the same time for 5 seats.
-Expected Output:
-5 users successfully book seats.
-5 users receive error messages for already booked seats.
+public class TicketBookingDemo {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the number of seats: ");
+        int totalSeats = scanner.nextInt();
+        TicketBookingSystem system = new TicketBookingSystem(totalSeats);
+        
+        while (true) {
+            System.out.println("\n1. Book Seat\n2. Display Seats\n3. Exit");
+            System.out.print("Choose an option: ");
+            int choice = scanner.nextInt();
+            
+            if (choice == 1) {
+                System.out.print("Enter your name: ");
+                String name = scanner.next();
+                System.out.print("Enter seat number: ");
+                int seatNumber = scanner.nextInt();
+                System.out.print("Are you a VIP? (true/false): ");
+                boolean isVIP = scanner.nextBoolean();
+                system.bookSeat(seatNumber, name, isVIP);
+            } else if (choice == 2) {
+                system.displaySeats();
+            } else if (choice == 3) {
+                System.out.println("Exiting...");
+                break;
+            } else {
+                System.out.println("Invalid choice, try again.");
+            }
+        }
+        
+        scanner.close();
+    }
+}
